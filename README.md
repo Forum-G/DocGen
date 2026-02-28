@@ -2,7 +2,7 @@
 
 > Paste raw endpoint definitions. Get clean, professional Markdown documentation instantly. Export to PDF.
 
-Live Demo: (https://docgen-zeta.vercel.app)
+Live Demo: https://docgen-zeta.vercel.app
 
 ---
 
