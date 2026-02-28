@@ -1,3 +1,7 @@
+/* =========================
+   Reset
+========================= */
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -9,24 +13,150 @@ html, body, #root {
   width: 100%;
 }
 
+/* =========================
+   THEME VARIABLES
+========================= */
+
+/* ----- LIGHT MODE ----- */
+:root {
+  --bg: #ffffff;
+  --bg-soft: #f8fafc;
+  --bg-panel: #ffffff;
+  --bg-elevated: #f1f5f9;
+
+  --border: #e2e8f0;
+
+  --text: #0f172a;
+  --text-dim: #64748b;
+
+  --editor-bg: #f8fafc;
+  --editor-gutter: #f1f5f9;
+
+  --scroll-track: #f1f5f9;
+  --scroll-thumb: #cbd5e1;
+}
+
+/* ----- DARK MODE ----- */
+[data-theme="dark"] {
+  --bg: #0d0d0d;
+  --bg-soft: #080808;
+  --bg-panel: #111111;
+  --bg-elevated: #141414;
+
+  --border: #1a1a1a;
+
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;  
+
+  --editor-bg: #0d0d0d;
+  --editor-gutter: #080808;
+
+  --scroll-track: #111;
+  --scroll-thumb: #333;
+}
+
+/* =========================
+   Base
+========================= */
+
 body {
-  background: #0d0d0d;
-  color: #e2e8f0;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.25s ease, color 0.25s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* =========================
+   Layout Overrides
+   (This fixes your inline dark backgrounds)
+========================= */
+
+/* Main container */
+div[style*="minHeight: \"100vh\""] {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Header + config bars */
+header,
+div[style*="borderBottom"] {
+  background: var(--bg-soft) !important;
+  border-color: var(--border) !important;
+}
+
+/* Editor + preview split */
+div[style*="borderRight"] {
+  border-color: var(--border) !important;
+}
+
+/* Gutter */
+div[style*="width: \"38px\""] {
+  background: var(--editor-gutter) !important;
+  border-color: var(--border) !important;
+}
+
+/* Textarea */
+textarea {
+  background: var(--editor-bg) !important;
+  color: var(--text) !important;
+}
+
+/* Inputs */
+input {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* Buttons ghost */
+.btn-ghost {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* =========================
+   Markdown Preview Fix
+========================= */
+
+.md-preview {
+  color: var(--text) !important;
+}
+
+.md-preview pre {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.md-preview code {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.md-preview table th,
+.md-preview table td {
+  border-color: var(--border) !important;
+}
+
+.md-preview table th {
+  background: var(--bg-elevated) !important;
+}
+
+/* =========================
+   Scrollbar
+========================= */
+
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #111;
+  background: var(--scroll-track);
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  background: var(--scroll-thumb);
+  border-radius: 4px;
 }

@@ -1,47 +1,45 @@
-const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-20250514";
+export async function generateAPIDocs(apiTitle, apiVersion, endpointDefs) {
+  try {
+    const safeEndpointDefs = endpointDefs.replace(/\|/g, "\\|");
 
-const SYSTEM_PROMPT = `You are an expert API documentation writer. \
-Convert raw endpoint definitions into beautiful, professional Markdown documentation.
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: `
+You are an expert API documentation writer.
 
 Rules:
 - Use clean Markdown with proper hierarchy (# title, ## per endpoint, ### for sub-sections)
-- Include HTTP method badges in backticks: \`GET\`, \`POST\`, \`PUT\`, \`DELETE\`, \`PATCH\`
+- Use ONLY # style headings (do NOT use === or --- underline headings)
 - Use tables for parameters, headers, and responses with columns: Name | Type | Required | Description
+- Table cells must NEVER contain line breaks
+- Do NOT use the | character inside table cells
+- Format enum values as comma-separated inline code values (example: \`admin\`, \`user\`, \`viewer\`)
 - Add fenced json code blocks for request/response body examples
 - Include a summary table at the very top: Method | Endpoint | Description
-- Be thorough but concise — no filler text
-- Output ONLY the Markdown, nothing else`;
+- Output ONLY the Markdown.
 
-/**
- * Call Anthropic Messages API to generate API docs from raw endpoint definitions.
- * @param {string} apiTitle
- * @param {string} apiVersion
- * @param {string} endpointDefs
- * @returns {Promise<string>} Generated Markdown string
- */
-export async function generateAPIDocs(apiTitle, apiVersion, endpointDefs) {
-  const response = await fetch(ANTHROPIC_API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 4000,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `Generate professional API documentation for "${apiTitle}" ${apiVersion}.\n\nEndpoint definitions:\n\n${endpointDefs}`,
-        },
-      ],
-    }),
-  });
+Generate professional API documentation for "${apiTitle}" ${apiVersion}.
 
-  const data = await response.json();
+Endpoint definitions:
 
-  if (data.error) {
-    throw new Error(data.error.message || "Anthropic API error");
+${safeEndpointDefs}
+        `,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("API request failed");
+    }
+
+    const data = await response.json();
+    return data.result;
+
+  } catch (error) {
+    console.error("Doc generation error:", error);
+    throw error;
   }
-
-  return data.content.map((block) => block.text || "").join("");
 }

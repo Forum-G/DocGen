@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SAMPLE_ENDPOINTS } from "./constants.js";
 import { generateAPIDocs } from "./api.js";
 import { renderMarkdownToHTML, buildPrintHTML } from "./markdown.js";
@@ -14,16 +14,33 @@ function Logo() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
       <div style={{
-        width: "30px", height: "30px", background: ACCENT,
-        borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center",
+        width: "30px",
+        height: "30px",
+        background: ACCENT,
+        borderRadius: "7px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}>
         <span style={{ fontSize: "16px", lineHeight: 1 }}>⚡</span>
       </div>
+
       <div>
-        <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", color: "#fff" }}>
+        <div style={{
+          fontSize: "13px",
+          fontWeight: 700,
+          letterSpacing: "0.1em",
+          color: "var(--text)"   // ✅ FIXED
+        }}>
           DOCGEN
         </div>
-        <div style={{ fontSize: "10px", color: "#333", letterSpacing: "0.08em", marginTop: "-2px" }}>
+
+        <div style={{
+          fontSize: "10px",
+          color: "var(--text-dim)",   // ✅ FIXED
+          letterSpacing: "0.08em",
+          marginTop: "-2px"
+        }}>
           API DOCUMENTATION GENERATOR
         </div>
       </div>
@@ -31,19 +48,42 @@ function Logo() {
   );
 }
 
-function Header({ hasOutput, onExport }) {
+function Header({ hasOutput, onExport, theme, setTheme }) {
   return (
     <header style={{
-      borderBottom: "1px solid #181818", padding: "0 24px",
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      height: "54px", background: "#080808", flexShrink: 0,
+      borderBottom: "1px solid var(--border)",
+      padding: "0 24px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      height: "54px",
+      background: "var(--bg-soft)",
+      flexShrink: 0,
     }}>
       <Logo />
-      {hasOutput && (
-        <button onClick={onExport} className="btn-ghost">
-          ↓ Export PDF
+
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {hasOutput && (
+          <button onClick={onExport} className="btn-ghost">
+            ↓ Export PDF
+          </button>
+        )}
+
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          style={{
+            background: "transparent",
+            border: "1px solid var(--border)",
+            borderRadius: "6px",
+            padding: "6px 12px",
+            fontSize: "11px",
+            color: "var(--text)",
+            cursor: "pointer",
+          }}
+        >
+          {theme === "dark" ? "☀ Light" : "🌙 Dark"}
         </button>
-      )}
+      </div>
     </header>
   );
 }
@@ -51,25 +91,38 @@ function Header({ hasOutput, onExport }) {
 function ConfigBar({ apiTitle, setApiTitle, apiVersion, setApiVersion, loading, disabled, onGenerate }) {
   return (
     <div style={{
-      borderBottom: "1px solid #141414", padding: "10px 24px",
-      display: "flex", gap: "10px", alignItems: "flex-end",
-      background: "#0a0a0a", flexShrink: 0,
+      borderBottom: "1px solid var(--border)",
+      padding: "10px 24px",
+      display: "flex",
+      gap: "10px",
+      alignItems: "flex-end",
+      background: "var(--bg-soft)",
+      flexShrink: 0,
     }}>
       {[
         { label: "API Name",  value: apiTitle,    set: setApiTitle,    width: "200px" },
         { label: "Version",   value: apiVersion,  set: setApiVersion,  width: "110px" },
       ].map(({ label, value, set, width }) => (
         <div key={label} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <label style={{ fontSize: "9px", color: "#3a3a3a", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          <label style={{
+            fontSize: "9px",
+            color: "var(--text-dim)",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase"
+          }}>
             {label}
           </label>
           <input
             value={value}
             onChange={(e) => set(e.target.value)}
             style={{
-              background: "#141414", border: "1px solid #222", borderRadius: "6px",
-              color: "#e2e8f0", padding: "6px 10px", fontSize: "12px",
-              width, fontFamily: "inherit",
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border)",
+              borderRadius: "6px",
+              color: "var(--text)",
+              padding: "6px 10px",
+              fontSize: "12px",
+              width,
             }}
           />
         </div>
@@ -81,12 +134,7 @@ function ConfigBar({ apiTitle, setApiTitle, apiVersion, setApiVersion, loading, 
         className="btn-primary"
         style={{ marginLeft: "auto" }}
       >
-        {loading ? (
-          <>
-            <span className="spinner" />
-            GENERATING...
-          </>
-        ) : "⚡ GENERATE DOCS"}
+        {loading ? "GENERATING..." : "⚡ GENERATE DOCS"}
       </button>
     </div>
   );
@@ -95,11 +143,27 @@ function ConfigBar({ apiTitle, setApiTitle, apiVersion, setApiVersion, loading, 
 function PanelHeader({ color, label, right }) {
   return (
     <div style={{
-      padding: "9px 16px", borderBottom: "1px solid #141414",
-      background: "#080808", display: "flex", alignItems: "center", gap: "8px",
+      padding: "9px 16px",
+      borderBottom: "1px solid var(--border)",
+      background: "var(--bg-soft)",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
     }}>
-      <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: color, display: "inline-block", transition: "background .3s" }} />
-      <span style={{ fontSize: "10px", color: "#444", letterSpacing: "0.1em" }}>{label}</span>
+      <span style={{
+        width: "7px",
+        height: "7px",
+        borderRadius: "50%",
+        background: color,
+        display: "inline-block"
+      }} />
+      <span style={{
+        fontSize: "10px",
+        color: "var(--text-dim)",
+        letterSpacing: "0.1em"
+      }}>
+        {label}
+      </span>
       {right && <div style={{ marginLeft: "auto" }}>{right}</div>}
     </div>
   );
@@ -109,45 +173,62 @@ function EditorPanel({ value, onChange }) {
   const lineCount = value.split("\n").length;
 
   return (
-    <div style={{ width: "50%", borderRight: "1px solid #141414", display: "flex", flexDirection: "column" }}>
+    <div style={{
+      width: "50%",
+      borderRight: "1px solid var(--border)",
+      display: "flex",
+      flexDirection: "column"
+    }}>
       <PanelHeader
-        color="#2a2a2a"
+        color="var(--border)"
         label="ENDPOINT DEFINITIONS"
-        right={<span style={{ fontSize: "10px", color: "#2a2a2a" }}>{lineCount} lines</span>}
+        right={<span style={{ fontSize: "10px", color: "var(--text-dim)" }}>{lineCount} lines</span>}
       />
-      <div style={{ flex: 1, position: "relative", display: "flex", overflow: "hidden" }}>
-        {/* Gutter */}
+
+      <div style={{ flex: 1, display: "flex" }}>
         <div style={{
-          width: "38px", background: "#080808", borderRight: "1px solid #141414",
-          padding: "14px 0", overflow: "hidden", flexShrink: 0, display: "flex", flexDirection: "column",
+          width: "38px",
+          background: "var(--bg-soft)",
+          borderRight: "1px solid var(--border)",
+          padding: "14px 0",
+          display: "flex",
+          flexDirection: "column"
         }}>
           {Array.from({ length: lineCount }, (_, i) => (
             <div key={i} style={{
-              height: "21px", display: "flex", alignItems: "center",
-              justifyContent: "flex-end", paddingRight: "7px",
-              fontSize: "10px", color: "#2a2a2a", lineHeight: "21px", flexShrink: 0,
+              height: "21px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              paddingRight: "7px",
+              fontSize: "10px",
+              color: "var(--text-dim)"
             }}>
               {i + 1}
             </div>
           ))}
         </div>
+
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
           spellCheck={false}
           style={{
-            flex: 1, background: "#0d0d0d", border: "none", resize: "none",
-            color: "#e2e8f0", fontSize: "12px", lineHeight: "21px",
+            flex: 1,
+            background: "var(--bg-panel)",
+            border: "none",
+            resize: "none",
+            color: "var(--text)",
+            fontSize: "12px",
+            lineHeight: "21px",
             padding: "14px 14px 14px 10px",
-            fontFamily: "'JetBrains Mono', monospace", tabSize: 2,
+            fontFamily: "'JetBrains Mono', monospace",
           }}
-          placeholder={`POST /api/users\nDescription: Create a user\nHeaders:\n  Content-Type: application/json\nBody:\n  name: string (required)\nResponses:\n  201: Created\n  400: Bad request`}
         />
       </div>
     </div>
   );
 }
-
 function TabBar({ active, onChange }) {
   return (
     <div style={{ display: "flex", gap: "3px" }}>
@@ -156,11 +237,12 @@ function TabBar({ active, onChange }) {
           key={tab}
           onClick={() => onChange(tab)}
           className="btn-tab"
-          data-active={active === tab}
           style={{
-            background: active === tab ? "#141414" : "none",
-            border: active === tab ? `1px solid ${ACCENT}44` : "1px solid transparent",
-            color: active === tab ? ACCENT : "#444",
+            background: active === tab ? "var(--bg-panel)" : "transparent",
+            border: active === tab
+              ? `1px solid ${ACCENT}44`
+              : "1px solid transparent",
+            color: active === tab ? ACCENT : "var(--text-dim)"
           }}
         >
           {tab}
@@ -217,7 +299,7 @@ function OutputPanel({ loading, error, markdown, activeTab, onTabChange }) {
         {!loading && !error && markdown && activeTab === "editor" && (
           <pre style={{
             margin: 0, fontSize: "11.5px", lineHeight: "1.7",
-            color: "#7dd3fc", whiteSpace: "pre-wrap",
+            color: "var(--text)", whiteSpace: "pre-wrap",
             fontFamily: "'JetBrains Mono', monospace", animation: "fadein .3s",
           }}>
             {markdown}
@@ -246,6 +328,15 @@ export default function App() {
   const [loading,    setLoading]    = useState(false);
   const [error,      setError]      = useState("");
   const [activeTab,  setActiveTab]  = useState("editor");
+
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "dark"
+  );
+  
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -316,29 +407,144 @@ export default function App() {
         /* Skeleton loader */
         .skeleton {
           border-radius: 4px;
-          background: linear-gradient(90deg, #181818 25%, #222 50%, #181818 75%);
+          background: linear-gradient(
+            90deg,
+            var(--bg-panel) 25%,
+            var(--border) 50%,
+            var(--bg-panel) 75%
+          );
           background-size: 200% 100%;
           animation: shimmer 1.4s infinite;
         }
 
         /* Markdown preview styles */
-        .md-preview { font-family: 'Newsreader', Georgia, serif; font-size: 15px; line-height: 1.75; color: #e2e8f0; }
-        .md-preview h1 { font-size: 1.9em; font-weight: 700; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid ${ACCENT}; color: #fff; }
-        .md-preview h2 { font-size: 1.3em; font-weight: 600; margin: 28px 0 10px; color: #fff; padding-left: 12px; border-left: 3px solid ${ACCENT}; }
-        .md-preview h3 { font-size: 1.05em; font-weight: 600; margin: 18px 0 8px; color: ${ACCENT_TEXT}; }
-        .md-preview h4 { font-size: .82em; font-weight: 600; margin: 14px 0 6px; color: #64748b; text-transform: uppercase; letter-spacing: .08em; }
-        .md-preview p  { margin-bottom: 10px; color: #cbd5e1; }
-        .md-preview code { font-family: 'JetBrains Mono', monospace; background: #1c1c1c; border: 1px solid #2d2d2d; padding: 2px 7px; border-radius: 4px; font-size: .82em; color: ${ACCENT_TEXT}; }
-        .md-preview pre { background: #111; border: 1px solid #222; border-radius: 8px; padding: 18px; overflow-x: auto; margin: 14px 0; }
-        .md-preview pre code { background: none; border: none; padding: 0; color: #e2e8f0; font-size: .85em; }
-        .md-preview table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .82em; font-family: 'JetBrains Mono', monospace; }
-        .md-preview th { background: #151515; border: 1px solid #222; padding: 9px 12px; text-align: left; color: ${ACCENT}; font-weight: 600; font-size: .78em; text-transform: uppercase; letter-spacing: .06em; }
-        .md-preview td { border: 1px solid #1c1c1c; padding: 8px 12px; color: #cbd5e1; vertical-align: top; }
-        .md-preview tr:nth-child(even) td { background: #0e0e0e; }
-        .md-preview ul  { margin: 10px 0 10px 18px; color: #cbd5e1; }
-        .md-preview li  { margin-bottom: 3px; }
-        .md-preview strong { color: #f1f5f9; font-weight: 600; }
-        .md-preview hr  { border: none; border-top: 1px solid #1e1e1e; margin: 20px 0; }
+        /* =========================
+        Markdown Preview
+     ========================= */
+     
+     .md-preview {
+       font-family: 'Newsreader', Georgia, serif;
+       font-size: 15px;
+       line-height: 1.75;
+       color: var(--text);
+     }
+     
+     /* Headings */
+     .md-preview h1 {
+       font-size: 1.9em;
+       font-weight: 700;
+       margin-bottom: 8px;
+       padding-bottom: 12px;
+       border-bottom: 2px solid ${ACCENT};
+     }
+     
+     .md-preview h2 {
+       font-size: 1.3em;
+       font-weight: 600;
+       margin: 28px 0 10px;
+       padding-left: 12px;
+       border-left: 3px solid ${ACCENT};
+     }
+     
+     .md-preview h3 {
+       font-size: 1.05em;
+       font-weight: 600;
+       margin: 18px 0 8px;
+       color: ${ACCENT};
+     }
+     
+     .md-preview h4 {
+       font-size: .82em;
+       font-weight: 600;
+       margin: 14px 0 6px;
+       color: var(--text-dim);
+       text-transform: uppercase;
+       letter-spacing: .08em;
+     }
+     
+     /* Paragraphs */
+     .md-preview p {
+       margin-bottom: 10px;
+     }
+     
+     /* Inline Code */
+     .md-preview code {
+       font-family: 'JetBrains Mono', monospace;
+       background: var(--bg-panel);
+       border: 1px solid var(--border);
+       padding: 2px 7px;
+       border-radius: 4px;
+       font-size: .82em;
+       color: ${ACCENT};
+     }
+     
+     /* Code Blocks */
+     .md-preview pre {
+       background: var(--bg-panel);
+       border: 1px solid var(--border);
+       border-radius: 8px;
+       padding: 18px;
+       overflow-x: auto;
+       margin: 14px 0;
+     }
+     
+     .md-preview pre code {
+       background: none;
+       border: none;
+       padding: 0;
+       color: var(--text);
+       font-size: .85em;
+     }
+     
+     /* Tables */
+     .md-preview table {
+       width: 100%;
+       border-collapse: collapse;
+       margin: 14px 0;
+       font-size: .82em;
+       font-family: 'JetBrains Mono', monospace;
+     }
+     
+     .md-preview th {
+       background: var(--bg-panel);
+       border: 1px solid var(--border);
+       padding: 9px 12px;
+       text-align: left;
+       color: ${ACCENT};
+       font-weight: 600;
+       font-size: .78em;
+       text-transform: uppercase;
+       letter-spacing: .06em;
+     }
+     
+     .md-preview td {
+       border: 1px solid var(--border);
+       padding: 8px 12px;
+       vertical-align: top;
+     }
+     
+     .md-preview tr:nth-child(even) td {
+       background: var(--bg-soft);
+     }
+     
+     /* Lists */
+     .md-preview ul {
+       margin: 10px 0 10px 18px;
+     }
+     
+     .md-preview li {
+       margin-bottom: 3px;
+     }
+     
+     .md-preview strong {
+       font-weight: 600;
+     }
+     
+     .md-preview hr {
+       border: none;
+       border-top: 1px solid var(--border);
+       margin: 20px 0;
+     }
 
         /* Animations */
         @keyframes spin    { to { transform: rotate(360deg); } }
@@ -347,11 +553,21 @@ export default function App() {
       `}</style>
 
       <div style={{
-        minHeight: "100vh", background: "#0D0D0D",
-        fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-        color: "#e2e8f0", display: "flex", flexDirection: "column",
-      }}>
-        <Header hasOutput={!!markdown} onExport={handleExport} />
+  minHeight: "100vh",
+  background: "var(--bg)",
+  fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+  color: "var(--text)",
+  display: "flex",
+  flexDirection: "column",
+  transition: "background 0.25s ease, color 0.25s ease",
+}}>
+  
+  <Header
+  hasOutput={!!markdown}
+  onExport={handleExport}
+  theme={theme}
+  setTheme={setTheme}
+/>
 
         <ConfigBar
           apiTitle={apiTitle}   setApiTitle={setApiTitle}
